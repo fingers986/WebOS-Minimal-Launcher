@@ -582,8 +582,36 @@ export default function App () {
 			if (e.key === 'ArrowUp' && n.row === 1 && !n.hasWatch && serverInput.current) { e.preventDefault(); serverInput.current.focus(); return; }
 			const rowLen = n.row === 0 ? n.count : n.apps.length;
 			switch (e.key) {
-				case 'ArrowLeft': e.preventDefault(); setCol((c) => Math.max(0, c - 1)); break;
-				case 'ArrowRight': e.preventDefault(); setCol((c) => Math.min(rowLen - 1, c + 1)); break;
+			case 'ArrowLeft':
+			    e.preventDefault();
+			    setCol((c) => {
+			        const next = Math.max(0, c - 1);
+			
+			        if (row === 1 && next < appStart) {
+			            setAppStart(next);
+			        }
+			
+			        return next;
+			    });
+			    break;
+			
+			case 'ArrowRight':
+			    e.preventDefault();
+			    setCol((c) => {
+			        const next = Math.min(rowLen - 1, c + 1);
+			
+			        if (row === 1 && next >= appStart + APP_VISIBLE) {
+			            setAppStart(
+			                Math.min(
+			                    Math.max(0, apps.length - APP_VISIBLE),
+			                    next - APP_VISIBLE + 1
+			                )
+			            );
+			        }
+			
+			        return next;
+			    });
+			    break;
 				case 'ArrowUp':
 					e.preventDefault();
 					if (n.row === 1 && n.hasWatch) { setRow(0); setCol(Math.min(n.heroIdx, n.count - 1)); }
