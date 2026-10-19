@@ -261,14 +261,14 @@ export default function App () {
 					e.clientY >= rect.top &&
 					e.clientY <= rect.bottom;
 		
-				setHideAppHighlight(!inside);
+				setHideAppHighlight(!inside || appScrollDirection !== 0);
 			};
 		
 			window.addEventListener('pointermove', updateAppHighlight);
 			return () => {
 				window.removeEventListener('pointermove', updateAppHighlight);
 			};
-		}, []);
+		}, [appScrollDirection]);
 
 	const [heroIdx, setHeroIdx] = useState(0);
 	const [toast, setToast] = useState('');
@@ -805,7 +805,7 @@ export default function App () {
 						    e.clientY >= rectWindow.top &&
 						    e.clientY <= rectWindow.bottom;
 						
-						setHideAppHighlight(!inAppWindow);
+						setHideAppHighlight(!inAppWindow || appScrollDirection !== 0);
 					
 					    if (!inAppWindow && row === 1) {
 					        setRow(hasWatch ? 0 : 1);
