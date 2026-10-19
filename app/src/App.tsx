@@ -547,6 +547,13 @@ export default function App () {
 		if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) < 6) return;
 		lastPointer.current = {x: e.clientX, y: e.clientY};
 		if (r === 1) {
+			const appWindow = document.querySelector('.approw-window');
+			if (appWindow && !appWindow.contains(e.target as Node)) {
+				setHideAppHighlight(true);
+				return;
+			}
+			setHideAppHighlight(false);
+		}
 			const lastVisible = Math.min(appStart + APP_VISIBLE - 1, apps.length - 1);
 		
 			if (c === lastVisible && appStart < appMaxStart) {
@@ -772,8 +779,15 @@ export default function App () {
 					    const rect = e.currentTarget.getBoundingClientRect();
 					    const x = e.clientX;
 					    const edgeZone = 220;
-					    const target = e.target as HTMLElement;
-					    const inAppWindow = !!target.closest('.approw-window');
+						const target = e.target as HTMLElement;
+						const appWindow = document.querySelector('.approw-window');
+						const rectWindow = appWindow?.getBoundingClientRect();
+						const inAppWindow = !!rectWindow &&
+						    e.clientX >= rectWindow.left &&
+						    e.clientX <= rectWindow.right &&
+						    e.clientY >= rectWindow.top &&
+						    e.clientY <= rectWindow.bottom;
+						
 						setHideAppHighlight(!inAppWindow);
 					
 					    if (!inAppWindow && row === 1) {
