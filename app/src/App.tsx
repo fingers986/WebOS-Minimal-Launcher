@@ -766,23 +766,30 @@ export default function App () {
 			<section className="block apps">
 				<div className="label">Apps</div>
 				<div
-				    className="approw-clip"
+				    className="apps-hover-zone"
 				    onMouseMove={(e) => {
 				        const rect = e.currentTarget.getBoundingClientRect();
 				        const x = e.clientX;
-				        const leftEdge = rect.left + APP_TILE_W;
-				        const rightEdge = rect.right - APP_TILE_W;
+				        const edgeZone = 220;
 				
-				        if (x <= leftEdge && appStart > 0) {
+				        if (x <= rect.left + edgeZone && appStart > 0) {
 				            setAppScrollDirection(-1);
-				        } else if (x >= rightEdge && appStart < appMaxStart) {
+				        } else if (x >= rect.right - edgeZone && appStart < appMaxStart) {
 				            setAppScrollDirection(1);
-				        } else {
-				            setAppScrollDirection(0);
+				        } else if (
+				            x > rect.left + edgeZone &&
+				            x < rect.right - edgeZone
+				        ) {
+				            const target = e.target as HTMLElement;
+				
+				            if (!target.closest('.card.app')) {
+				                setAppScrollDirection(0);
+				            }
 				        }
 				    }}
 				    onMouseLeave={() => setAppScrollDirection(0)}
 				>
+				    <div className="approw-clip">
 					<div className="approw-window">
 						<div
 							className="approw"
@@ -803,6 +810,7 @@ export default function App () {
 							))}
 						</div>
 					</div>
+				</div>
 				</div>
 			</section>
 
