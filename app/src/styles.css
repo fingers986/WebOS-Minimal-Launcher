@@ -125,7 +125,7 @@ h1 {
 .cap .s { margin-top: 4px; font-size: 17px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .approw-clip {
-	width: 100%;
+	width: 1824px;
 	overflow: hidden;
 	padding: 18px 0 22px 48px;
 	margin: -18px 0 -22px -48px;
