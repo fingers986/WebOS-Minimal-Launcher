@@ -103,13 +103,8 @@ h1 {
 
 /* focus ring + glow on its own pre-painted layer: only opacity changes */
 .ring {
-	position: absolute; inset: -3px; border-radius: 20px; pointer-events: none; opacity: 0;
-	border: 3px solid rgba(255, 255, 255, 0.92);
-	box-shadow: 0 14px 40px rgba(0, 0, 0, 0.55), 0 0 36px rgba(169, 155, 255, 0.28);
-	transition: opacity 160ms ease; will-change: opacity;
+	display: none;
 }
-.card.on .ring { opacity: 1; }
-.card.wide .ring { bottom: auto; height: 172px; }   /* hug the image, not the caption */
 
 .card.wide { width: 296px; }
 .thumb {
