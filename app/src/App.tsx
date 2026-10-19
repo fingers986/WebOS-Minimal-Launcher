@@ -580,7 +580,6 @@ export default function App () {
 			}
 			const n = nav.current;
 			if (e.key === 'ArrowUp' && n.row === 1 && !n.hasWatch && serverInput.current) { e.preventDefault(); serverInput.current.focus(); return; }
-			const rowLen = n.row === 0 ? n.count : n.apps.length;
 			switch (e.key) {
 			case 'ArrowLeft': {
 			    e.preventDefault();
