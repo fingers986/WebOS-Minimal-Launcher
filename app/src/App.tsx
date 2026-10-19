@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent} from 'react';
-import {APPS, HDMI_NAMES, type AppDef} from './lib/apps';
+import {HDMI_NAMES, type AppDef} from './lib/apps';
 import {
 	AuthError, JELLYFIN_APP_ID, checkServer, clearSession, loadServer, saveServer, fetchContinue, loadSession, quickConnectEnabled,
 	quickConnectInitiate, quickConnectPoll, saveSession, type Card, type Session
