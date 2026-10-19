@@ -678,7 +678,7 @@ export default function App () {
 	
 	            return clamped;
 	        });
-	    }, 250);
+	    }, 100);
 	
 	    return () => window.clearInterval(timer);
 	}, [row, appScrollDirection, appMaxStart]);
