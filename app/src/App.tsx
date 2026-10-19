@@ -13,7 +13,8 @@ const GAP = 20;
 const VISIBLE = 5;          // wide cards fully visible at once
 const APP_TILE_W = 178;
 const APP_GAP = 16;
-const APP_VIEW_W = 1920 - 96;
+const APP_VISIBLE = 9;
+const APP_STEP = APP_TILE_W + APP_GAP;
 const JITTER_MS = 150_000;  // OLED guard: nudge the whole UI by ±2px this often
 const IDLE_MS = 60_000;         // no input for this long → idle screen (true black + dim drifting clock)
 const IDLE_DEEP_MS = 600_000;   // …after this much more idle time the clock dims further
@@ -245,6 +246,8 @@ export default function App () {
 	const serverInput = useRef<HTMLInputElement | null>(null);
 	const [row, setRow] = useState<0 | 1>(1);     // 0 = continue watching, 1 = apps
 	const [col, setCol] = useState(0);
+	const [appStart, setAppStart] = useState(0);
+	const [appScrollDirection, setAppScrollDirection] = useState<-1 | 0 | 1>(0);
 	const [heroIdx, setHeroIdx] = useState(0);
 	const [toast, setToast] = useState('');
 	const [jitter, setJitter] = useState<[number, number]>([0, 0]);
@@ -541,6 +544,19 @@ export default function App () {
 		const p = lastPointer.current;
 		if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) < 6) return;
 		lastPointer.current = {x: e.clientX, y: e.clientY};
+		if (r === 1) {
+			const lastVisible = Math.min(appStart + APP_VISIBLE - 1, apps.length - 1);
+		
+			if (c === lastVisible && appStart < appMaxStart) {
+				setAppScrollDirection(1);
+			} else if (c === appStart && appStart > 0) {
+				setAppScrollDirection(-1);
+			} else {
+				setAppScrollDirection(0);
+			}
+		} else {
+			setAppScrollDirection(0);
+		}
 		setRow(r);
 		setCol(c);
 		// diagnostics for real Magic-Remote use (read later over DevTools: window.__hoverLog): how long from the system's
@@ -551,7 +567,7 @@ export default function App () {
 			log.push({sinceVisible: Math.round(born - visibleAt.current), toFrame: Math.round(performance.now() - born)});
 			if (log.length > 40) log.shift();
 		}));
-	}, []);
+	}, [appStart, appMaxStart, apps.length]);
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
@@ -601,20 +617,29 @@ export default function App () {
 	const maxOffset = Math.max(0, (cards.length - VISIBLE) * (CARD_W + GAP));
 	const watchCol = row === 0 ? col : Math.min(heroIdx, Math.max(0, cards.length - 1));   // the watch row keeps its own position while you browse apps
 	const offset = Math.min(maxOffset, Math.max(0, watchCol - 2) * (CARD_W + GAP));
-	const appMaxOffset = Math.max(
-		0,
-		apps.length * (APP_TILE_W + APP_GAP) - APP_GAP - APP_VIEW_W
-	);
+	const appMaxStart = Math.max(0, apps.length - APP_VISIBLE);
+	
 	const appOffset = row === 1
-		? Math.min(
-			appMaxOffset,
-			Math.max(
-				0,
-				col * (APP_TILE_W + APP_GAP) + APP_TILE_W - APP_VIEW_W
-			)
-		)
+		? Math.min(appMaxStart, Math.max(0, appStart)) * APP_STEP
 		: 0;
-
+	useEffect(() => {
+		if (row !== 1 || appScrollDirection.current === 0) return;
+	
+		const timer = window.setInterval(() => {
+			setAppStart((start) => {
+				const next = start + appScrollDirection.current;
+				const clamped = Math.min(appMaxStart, Math.max(0, next));
+	
+				if (clamped === start) {
+					appScrollDirection.current = 0;
+				}
+	
+				return clamped;
+			});
+		}, 450);
+	
+		return () => window.clearInterval(timer);
+	}, [row, appMaxStart, appStart]);
 	const hh = String(now.getHours()).padStart(2, '0');
 	const mm = String(now.getMinutes()).padStart(2, '0');
 	const date = now.toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'});
