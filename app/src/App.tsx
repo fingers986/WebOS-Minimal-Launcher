@@ -14,7 +14,6 @@ const VISIBLE = 5;          // wide cards fully visible at once
 const APP_TILE_W = 178;
 const APP_GAP = 16;
 const APP_VIEW_W = 1920 - 96;
-const APP_VISIBLE = 9;
 const JITTER_MS = 150_000;  // OLED guard: nudge the whole UI by ±2px this often
 const IDLE_MS = 60_000;         // no input for this long → idle screen (true black + dim drifting clock)
 const IDLE_DEEP_MS = 600_000;   // …after this much more idle time the clock dims further
@@ -607,7 +606,13 @@ export default function App () {
 		apps.length * (APP_TILE_W + APP_GAP) - APP_GAP - APP_VIEW_W
 	);
 	const appOffset = row === 1
-		? Math.min(appMaxOffset, Math.max(0, (col - (APP_VISIBLE - 1)) * (APP_TILE_W + APP_GAP)))
+		? Math.min(
+			appMaxOffset,
+			Math.max(
+				0,
+				col * (APP_TILE_W + APP_GAP) + APP_TILE_W - APP_VIEW_W
+			)
+		)
 		: 0;
 
 	const hh = String(now.getHours()).padStart(2, '0');
