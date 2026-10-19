@@ -614,9 +614,6 @@ export default function App () {
 			    break;
 			}
 			
-			        return next;
-			    });
-			    break;
 				case 'ArrowUp':
 					e.preventDefault();
 					if (n.row === 1 && n.hasWatch) { setRow(0); setCol(Math.min(n.heroIdx, n.count - 1)); }
