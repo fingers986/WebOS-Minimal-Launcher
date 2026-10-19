@@ -540,6 +540,7 @@ export default function App () {
 
 	/** Pointer over a card focuses it, but only for REAL pointer movement - a card that slides under a
 	 *  still pointer (the row scrolls) must not steal focus. */
+		const appMaxStart = Math.max(0, apps.length - APP_VISIBLE);
 	const hover = useCallback((r: 0 | 1, c: number, e: ReactMouseEvent) => {
 		const p = lastPointer.current;
 		if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) < 6) return;
@@ -617,29 +618,28 @@ export default function App () {
 	const maxOffset = Math.max(0, (cards.length - VISIBLE) * (CARD_W + GAP));
 	const watchCol = row === 0 ? col : Math.min(heroIdx, Math.max(0, cards.length - 1));   // the watch row keeps its own position while you browse apps
 	const offset = Math.min(maxOffset, Math.max(0, watchCol - 2) * (CARD_W + GAP));
-	const appMaxStart = Math.max(0, apps.length - APP_VISIBLE);
 	
 	const appOffset = row === 1
 		? Math.min(appMaxStart, Math.max(0, appStart)) * APP_STEP
 		: 0;
 	useEffect(() => {
-		if (row !== 1 || appScrollDirection.current === 0) return;
+	    if (row !== 1 || appScrollDirection === 0) return;
 	
-		const timer = window.setInterval(() => {
-			setAppStart((start) => {
-				const next = start + appScrollDirection.current;
-				const clamped = Math.min(appMaxStart, Math.max(0, next));
+	    const timer = window.setInterval(() => {
+	        setAppStart((start) => {
+	            const next = start + appScrollDirection;
+	            const clamped = Math.min(appMaxStart, Math.max(0, next));
 	
-				if (clamped === start) {
-					appScrollDirection.current = 0;
-				}
+	            if (clamped === start) {
+	                setAppScrollDirection(0);
+	            }
 	
-				return clamped;
-			});
-		}, 450);
+	            return clamped;
+	        });
+	    }, 450);
 	
-		return () => window.clearInterval(timer);
-	}, [row, appMaxStart, appStart]);
+	    return () => window.clearInterval(timer);
+	}, [row, appScrollDirection, appMaxStart]);
 	const hh = String(now.getHours()).padStart(2, '0');
 	const mm = String(now.getMinutes()).padStart(2, '0');
 	const date = now.toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'});
