@@ -131,6 +131,11 @@ h1 {
     margin: -18px 0 -22px -48px;
 }
 
+.apps-hover-zone {
+    width: calc(100% + var(--pad));
+    margin-left: calc(-1 * var(--pad));
+}
+
 .approw-window {
     width: calc(100% + 24px);
     overflow: hidden;
