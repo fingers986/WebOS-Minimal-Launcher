@@ -132,7 +132,7 @@ h1 {
 }
 
 .approw-window {
-    width: 100%;
+    width: calc(100% + 24px);
     overflow: hidden;
     padding: 18px 12px 22px;
     margin: -18px -12px -22px;
