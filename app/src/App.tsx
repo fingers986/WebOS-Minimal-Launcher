@@ -278,6 +278,7 @@ export default function App () {
 	useEffect(() => {
 		if (!isWebOS()) return;
 		const read = () => { installedApps().then((apps) => setInstalled(apps)).catch(() => { /* helper unavailable: keep the fallback tiles */ });
+		};
 		read();
 		const onVis = () => { if (!document.hidden) read(); };   // apps may have been installed/removed meanwhile
 		document.addEventListener('visibilitychange', onVis);
