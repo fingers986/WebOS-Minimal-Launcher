@@ -74,9 +74,120 @@ export interface InstalledApp {
     lptype: string;
 }
 
-export function installedApps (): Promise<InstalledApp[]> {
-    return lunaCall<{apps?: InstalledApp[]}>('tld.my.minimalhome.service', 'installedApps', {}, 5000)
-        .then((r) => r.apps || []);
+
+interface HomebrewExecResponse {
+    stdoutString?: string;
+    error?: string;
+}
+
+interface LaunchPoint {
+    id: string;
+    title?: string;
+    icon?: string;
+    largeIcon?: string;
+    launchPointId?: string;
+    hidden?: boolean;
+    lptype?: string;
+}
+
+const HBCHANNEL_SERVICE = 'org.webosbrew.hbchannel.service';
+const SAFE_ICON_PATH = /^\/[A-Za-z0-9._\/+@-]+$/;
+const iconCache: Record<string, string> = {};
+
+function shellQuote(value: string): string {
+    return "'" + value.replace(/'/g, "'\\''") + "'";
+}
+
+function homebrewExec(
+    command: string,
+    timeoutMs = 8000
+): Promise<string> {
+    return lunaCall<HomebrewExecResponse>(
+        HBCHANNEL_SERVICE,
+        'exec',
+        { command },
+        timeoutMs
+    ).then((response) => {
+        if (response.error) {
+            throw new Error(response.error);
+        }
+
+        return response.stdoutString || '';
+    });
+}
+
+export function installedApps(): Promise<InstalledApp[]> {
+    const command =
+        "luna-send -n 1 -f " +
+        "'luna://com.webos.applicationManager/listLaunchPoints' '{}'";
+
+    return homebrewExec(command).then((stdout) => {
+        const result = JSON.parse(stdout) as {
+            returnValue?: boolean;
+            launchPoints?: LaunchPoint[];
+        };
+
+        if (
+            result.returnValue !== true ||
+            !Array.isArray(result.launchPoints)
+        ) {
+            throw new Error('Unable to read webOS launch points');
+        }
+
+        const points = result.launchPoints.filter(
+            (app) =>
+                app &&
+                !!app.id &&
+                app.hidden !== true &&
+                app.id !== 'tld.my.minimalhome'
+        );
+
+        const missing: { id: string; path: string }[] = [];
+
+        for (const app of points) {
+            const path = app.largeIcon || app.icon || '';
+            if (!path || !SAFE_ICON_PATH.test(path)) continue;
+
+            if (!iconCache[app.id]) {
+                missing.push({ id: app.id, path });
+            }
+        }
+
+        const loadIcons = (): Promise<void> => {
+            if (!missing.length) return Promise.resolve();
+
+            const script = missing
+                .map(
+                    (item, index) =>
+                        `printf '%d ' ${index}; base64 ${shellQuote(item.path)} 2>/dev/null | tr -d '\\n'; echo`
+                )
+                .join('; ');
+
+            return homebrewExec(script, 15000).then((output) => {
+                for (const line of output.split('\n')) {
+                    const match = /^(\d+) ([A-Za-z0-9+/=]+)$/.exec(line);
+                    if (!match) continue;
+
+                    const item = missing[Number(match[1])];
+                    if (!item) continue;
+
+                    iconCache[item.id] =
+                        `data:image/png;base64,${match[2]}`;
+                }
+            });
+        };
+
+        return loadIcons().then(() =>
+            points.map((app) => ({
+                id: app.id,
+                title: app.title || app.id,
+                icon: iconCache[app.id] || '',
+                launchPointId: app.launchPointId || '',
+                visible: app.hidden !== true,
+                lptype: app.lptype || 'default'
+            }))
+        );
+    });
 }
 
 /** The server Jellyfin Native is signed in to (only the address - the helper never hands out its token). */
