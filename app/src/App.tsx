@@ -765,24 +765,43 @@ export default function App () {
 
 			<section className="block apps">
 				<div className="label">Apps</div>
-				<div className="approw-clip">
-					<div
-						className="approw"
-						style={{transform: `translate3d(${-appOffset}px,0,0)`}}
-					>
-						{apps.map((a, i) => (
-							<div
-								key={a.id}
-								className={'card app' + (row === 1 && col === i ? ' on' : '') + (a.dim ? ' dim' : '')}
-								onMouseMove={(e) => hover(1, i, e)}
-								onClick={() => { setRow(1); setCol(i); activate(1, i); }}
-							>
-								<AppIcon app={a} />
-								<div className="app-title">{a.title}</div>
-								{a.sub ? <div className="app-sub">{a.sub}</div> : null}
-								<div className="ring" />
-							</div>
-						))}
+				<div
+					className="approw-clip"
+					onMouseMove={(e) => {
+						const rect = e.currentTarget.getBoundingClientRect();
+						const x = e.clientX - rect.left;
+						const leftEdge = 48 + APP_TILE_W;
+						const rightEdge = 48 + APP_STEP * (APP_VISIBLE - 1);
+
+						if (x <= leftEdge && appStart > 0) {
+							setAppScrollDirection(-1);
+						} else if (x >= rightEdge && appStart < appMaxStart) {
+							setAppScrollDirection(1);
+						} else {
+							setAppScrollDirection(0);
+						}
+					}}
+					onMouseLeave={() => setAppScrollDirection(0)}
+				>
+					<div className="approw-window">
+						<div
+							className="approw"
+							style={{transform: `translate3d(${-appOffset}px,0,0)`}}
+						>
+							{apps.map((a, i) => (
+								<div
+									key={a.id}
+									className={'card app' + (row === 1 && col === i ? ' on' : '') + (a.dim ? ' dim' : '')}
+									onMouseMove={(e) => hover(1, i, e)}
+									onClick={() => { setRow(1); setCol(i); activate(1, i); }}
+								>
+									<AppIcon app={a} />
+									<div className="app-title">{a.title}</div>
+									{a.sub ? <div className="app-sub">{a.sub}</div> : null}
+									<div className="ring" />
+								</div>
+							))}
+						</div>
 					</div>
 				</div>
 			</section>
