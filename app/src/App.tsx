@@ -248,6 +248,7 @@ export default function App () {
 	const [col, setCol] = useState(0);
 	const [appStart, setAppStart] = useState(0);
 	const [appScrollDirection, setAppScrollDirection] = useState<-1 | 0 | 1>(0);
+	const [hideAppHighlight, setHideAppHighlight] = useState(false);
 	const [heroIdx, setHeroIdx] = useState(0);
 	const [toast, setToast] = useState('');
 	const [jitter, setJitter] = useState<[number, number]>([0, 0]);
@@ -773,6 +774,7 @@ export default function App () {
 					    const edgeZone = 220;
 					    const target = e.target as HTMLElement;
 					    const inAppWindow = !!target.closest('.approw-window');
+						setHideAppHighlight(!inAppWindow);
 					
 					    if (!inAppWindow && row === 1) {
 					        setRow(hasWatch ? 0 : 1);
@@ -798,7 +800,7 @@ export default function App () {
 							{apps.map((a, i) => (
 								<div
 									key={a.id}
-									className={'card app' + (row === 1 && col === i ? ' on' : '') + (a.dim ? ' dim' : '')}
+									className={'card app' + (row === 1 && col === i && !hideAppHighlight ? ' on' : '') + (a.dim ? ' dim' : '')}
 									onMouseMove={(e) => hover(1, i, e)}
 									onClick={() => { setRow(1); setCol(i); activate(1, i); }}
 								>
