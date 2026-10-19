@@ -509,8 +509,8 @@ export default function App () {
 		launchApp(id, params).catch(() => showToast(`Couldn't launch ${title}`));
 	}, [showToast]);
 
-	const nav = useRef({row, col, hasWatch, count: cards.length, cards, launch, heroIdx, apps});
-	nav.current = {row, col, hasWatch, count: cards.length, cards, launch, heroIdx, apps};
+	const nav = useRef({row, col, appStart, hasWatch, count: cards.length, cards, launch, heroIdx, apps});
+	nav.current = {row, col, appStart, hasWatch, count: cards.length, cards, launch, heroIdx, apps};
 
 	// --- pointer (Magic Remote) support -------------------------------------------
 	const lastPointer = useRef({x: -1, y: -1});
@@ -582,32 +582,37 @@ export default function App () {
 			if (e.key === 'ArrowUp' && n.row === 1 && !n.hasWatch && serverInput.current) { e.preventDefault(); serverInput.current.focus(); return; }
 			const rowLen = n.row === 0 ? n.count : n.apps.length;
 			switch (e.key) {
-			case 'ArrowLeft':
+			case 'ArrowLeft': {
 			    e.preventDefault();
-			    setCol((c) => {
-			        const next = Math.max(0, c - 1);
 			
-			        if (row === 1 && next < appStart) {
-			            setAppStart(next);
-			        }
+			    const next = Math.max(0, n.col - 1);
+			    setCol(next);
 			
-			        return next;
-			    });
+			    if (n.row === 1 && next < n.appStart) {
+			        setAppStart(next);
+			    }
+			
 			    break;
+			}
 			
-			case 'ArrowRight':
+			case 'ArrowRight': {
 			    e.preventDefault();
-			    setCol((c) => {
-			        const next = Math.min(rowLen - 1, c + 1);
 			
-			        if (row === 1 && next >= appStart + APP_VISIBLE) {
-			            setAppStart(
-			                Math.min(
-			                    Math.max(0, apps.length - APP_VISIBLE),
-			                    next - APP_VISIBLE + 1
-			                )
-			            );
-			        }
+			    const rowLen = n.row === 0 ? n.count : n.apps.length;
+			    const next = Math.min(rowLen - 1, n.col + 1);
+			    setCol(next);
+			
+			    if (n.row === 1 && next >= n.appStart + APP_VISIBLE) {
+			        setAppStart(
+			            Math.min(
+			                Math.max(0, n.apps.length - APP_VISIBLE),
+			                next - APP_VISIBLE + 1
+			            )
+			        );
+			    }
+			
+			    break;
+			}
 			
 			        return next;
 			    });
