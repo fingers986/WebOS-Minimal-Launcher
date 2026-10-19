@@ -304,6 +304,7 @@ service.register('openItem', function (m) {
 service.register('installedApps', function (m) {
 	lunaOnce('luna://com.webos.applicationManager/listLaunchPoints', {}, function (e, out) {
 		var points = out && Array.isArray(out.launchPoints) ? out.launchPoints : [];
+		console.log('[installedApps] returnValue:', out && out.returnValue, 'launchPoints:', points.length);
 		var apps = points
 			.filter(function (a) { return a && a.id; })
 			.map(function (a) {
@@ -316,6 +317,7 @@ service.register('installedApps', function (m) {
 					lptype: a.lptype || 'default'
 				};
 			});
+		console.log('[installedApps] apps:', JSON.stringify(apps));
 		m.respond({
 			returnValue: !!(out && out.returnValue === true),
 			apps: apps
