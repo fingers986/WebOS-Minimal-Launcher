@@ -1,0 +1,62 @@
+
+name: Build webOS Minimal Home
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - 'app/**'
+      - 'scripts/rebuild-all.sh'
+      - '.github/workflows/build.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: app/package-lock.json
+
+      - name: Install app dependencies
+        working-directory: app
+        run: npm ci --no-audit --no-fund
+
+      - name: TypeScript check
+        working-directory: app
+        run: npm run typecheck
+
+      - name: Build app
+        working-directory: app
+        run: npm run build
+        env:
+          RELEASE: '1'
+
+      - name: Install webOS packaging CLI
+        run: npm install --no-audit --no-fund --prefix tools/ares @webos-tools/cli
+
+      - name: Package webOS app and service
+        run: |
+          mkdir -p release
+          tools/ares/node_modules/.bin/ares-package \
+            app/dist app/service \
+            -o release --no-minify
+
+      - name: Upload IPK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: minimal-home-ipk
+          path: release/*.ipk
+          if-no-files-found: error
+          retention-days: 14
