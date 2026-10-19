@@ -4,7 +4,7 @@ import {
 	AuthError, JELLYFIN_APP_ID, checkServer, clearSession, loadServer, saveServer, fetchContinue, loadSession, quickConnectEnabled,
 	quickConnectInitiate, quickConnectPoll, saveSession, type Card, type Session
 } from './lib/jellyfin';
-import {installedApps, isWebOS, jellyfinServerFromNative, launchApp, openJellyfinItem, panelOff, watchInputs, type InputPort} from './lib/luna';
+import {installedApps, isWebOS, jellyfinServerFromNative, launchApp, openJellyfinItem, panelOff, watchInputs, type InputPort, type InstalledApp} from './lib/luna';
 import {downloadsActive, feedLines, fetchFeed, type Feed, type Line} from './lib/feed';
 
 // Layout constants (CSS px at 1920×1080) — keep in sync with styles.css.
@@ -130,34 +130,105 @@ function YoutubeGlyph () {
 }
 
 function AppIcon ({app}: {app: AppDef}) {
-	if (app.icon) return <img className="app-icon" src={app.icon} alt="" />;
-	const g = app.glyph === 'spotify' ? <SpotifyGlyph /> : app.glyph === 'youtube' ? <YoutubeGlyph /> : <HdmiGlyph />;
-	return <span className="app-glyph">{g}</span>;
+    const [iconFailed, setIconFailed] = useState(false);
+
+    if (app.icon && !iconFailed) {
+        return (
+            <img
+                className="app-icon"
+                src={app.icon}
+                alt=""
+                onError={() => setIconFailed(true)}
+            />
+        );
+    }
+
+    if (app.glyph === 'spotify') {
+        return <span className="app-glyph"><SpotifyGlyph /></span>;
+    }
+
+    if (app.glyph === 'youtube') {
+        return <span className="app-glyph"><YoutubeGlyph /></span>;
+    }
+
+    if (app.glyph === 'hdmi') {
+        return <span className="app-glyph"><HdmiGlyph /></span>;
+    }
+
+    return (
+        <span className="app-glyph app-glyph-fallback">
+            {(app.title.trim().charAt(0) || 'A').toUpperCase()}
+        </span>
+    );
 }
 
 /** An app tile as shown: HDMI tiles carry the plugged-in device's name, the port as a second line, and dim when nothing is on. */
 type Tile = AppDef & {sub?: string; dim?: boolean};
 
-function buildTiles (ports: InputPort[] | null, installed: Set<string> | null): Tile[] {
-	// only apps that are on this TV (HDMI inputs are system apps and always there); unknown yet: all
-	const list = installed ? APPS.filter((a) => a.input || installed.has(a.id)) : APPS;
-	if (!ports) return list;   // plug state unknown (yet): plain tiles
-	const name = (p: InputPort | undefined, input: string, fallback: string) => (p?.renamed ? p.label : HDMI_NAMES[input]) || fallback;
-	const tiles: Tile[] = list.map((a) => {
-		if (!a.input) return a;
-		const p = ports.find((x) => x.id === a.input);
-		const title = name(p, a.input, a.title);
-		return {...a, title, sub: title !== a.title ? a.title : undefined, dim: p ? !p.plugged : false};
-	});
-	// ports without a fixed tile (HDMI 3/4) only show up while something is plugged in, in front of Settings
-	const extra: Tile[] = ports.filter((p) => p.plugged && !APPS.some((a) => a.input === p.id)).map((p) => {
-		const port = p.id.replace('_', ' ');   // "HDMI 3"
-		const title = name(p, p.id, port);
-		return {id: p.appId, title, glyph: 'hdmi', input: p.id, sub: title !== port ? port : undefined};
-	});
-	const at = tiles.findIndex((t) => t.id === 'com.palm.app.settings');
-	if (extra.length) tiles.splice(at < 0 ? tiles.length : at, 0, ...extra);
-	return tiles;
+function buildTiles (ports: InputPort[] | null, installed: InstalledApp[] | null): Tile[] {
+    const visibleApps = installed?.filter((a) => a.visible && a.id) ?? [];
+    const installedIds = new Set(visibleApps.map((a) => a.id));
+
+    const list: Tile[] = installed === null
+        ? [...APPS]
+        : APPS.filter((a) => a.input || installedIds.has(a.id));
+
+    const knownIds = new Set(APPS.map((a) => a.id));
+    const seenIds = new Set(list.map((a) => a.id));
+
+    const extraApps: Tile[] = [];
+    for (const a of visibleApps) {
+        if (knownIds.has(a.id) || seenIds.has(a.id)) continue;
+        if (a.id.startsWith('com.webos.app.hdmi')) continue;
+
+        seenIds.add(a.id);
+        extraApps.push({
+            id: a.id,
+            title: a.title || a.id,
+            icon: a.icon || undefined
+        });
+    }
+
+    const settingsIndex = list.findIndex((a) => a.id === 'com.palm.app.settings');
+    list.splice(settingsIndex < 0 ? list.length : settingsIndex, 0, ...extraApps);
+
+    if (!ports) return list;
+
+    const name = (p: InputPort | undefined, input: string, fallback: string) =>
+        (p?.renamed ? p.label : HDMI_NAMES[input]) || fallback;
+
+    const tiles: Tile[] = list.map((a) => {
+        if (!a.input) return a;
+        const p = ports.find((x) => x.id === a.input);
+        const title = name(p, a.input, a.title);
+        return {
+            ...a,
+            title,
+            sub: title !== a.title ? a.title : undefined,
+            dim: p ? !p.plugged : false
+        };
+    });
+
+    const extraInputs: Tile[] = ports
+        .filter((p) => p.plugged && !APPS.some((a) => a.input === p.id))
+        .map((p) => {
+            const port = p.id.replace('_', ' ');
+            const title = name(p, p.id, port);
+            return {
+                id: p.appId,
+                title,
+                glyph: 'hdmi',
+                input: p.id,
+                sub: title !== port ? port : undefined
+            };
+        });
+
+    const at = tiles.findIndex((t) => t.id === 'com.palm.app.settings');
+    if (extraInputs.length) {
+        tiles.splice(at < 0 ? tiles.length : at, 0, ...extraInputs);
+    }
+
+    return tiles;
 }
 
 export default function App () {
@@ -203,10 +274,10 @@ export default function App () {
 		const every = window.setInterval(() => { if (!document.hidden && !idleRef.current) w.refresh(); }, 15_000);
 		return () => { w.cancel(); window.clearInterval(every); document.removeEventListener('visibilitychange', onVis); };
 	}, []);
-	const [installed, setInstalled] = useState<Set<string> | null>(null);
+	const [installed, setInstalled] = useState<InstalledApp[] | null>(null);
 	useEffect(() => {
 		if (!isWebOS()) return;
-		const read = () => { installedApps().then((ids) => { if (ids.length) setInstalled(new Set(ids)); }).catch(() => { /* helper missing: show all tiles */ }); };
+		const read = () => { installedApps().then((apps) => setInstalled(apps)).catch(() => { /* helper unavailable: keep the fallback tiles */ });
 		read();
 		const onVis = () => { if (!document.hidden) read(); };   // apps may have been installed/removed meanwhile
 		document.addEventListener('visibilitychange', onVis);
