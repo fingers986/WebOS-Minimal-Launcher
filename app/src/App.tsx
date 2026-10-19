@@ -569,19 +569,7 @@ export default function App () {
 			if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) < 6) return;
 			lastPointer.current = {x: e.clientX, y: e.clientY};
 		
-			if (r === 1) {
-				const lastVisible = Math.min(appStart + APP_VISIBLE - 1, apps.length - 1);
-		
-				if (c === lastVisible && appStart < appMaxStart) {
-					setAppScrollDirection(1);
-				} else if (c === appStart && appStart > 0) {
-					setAppScrollDirection(-1);
-				} else {
-					setAppScrollDirection(0);
-				}
-			} else {
-				setAppScrollDirection(0);
-			}
+			setAppScrollDirection(0);
 		
 			setRow(r);
 			setCol(c);
@@ -793,10 +781,6 @@ export default function App () {
 				<div
 				    className="apps-hover-zone"
 					onMouseMove={(e) => {
-					    const rect = e.currentTarget.getBoundingClientRect();
-					    const x = e.clientX;
-					    const edgeZone = 220;
-						const target = e.target as HTMLElement;
 						const appWindow = document.querySelector('.approw-window');
 						const rectWindow = appWindow?.getBoundingClientRect();
 						const inAppWindow = !!rectWindow &&
@@ -806,19 +790,23 @@ export default function App () {
 						    e.clientY <= rectWindow.bottom;
 						
 						setHideAppHighlight(!inAppWindow || appScrollDirection !== 0);
-					
-					    if (!inAppWindow && row === 1) {
-					        setRow(hasWatch ? 0 : 1);
-					        if (hasWatch) setCol(Math.min(heroIdx, cards.length - 1));
-					    }
-					
-					    if (x <= rect.left + edgeZone && appStart > 0) {
-					        setAppScrollDirection(-1);
-					    } else if (x >= rect.right - edgeZone && appStart < appMaxStart) {
-					        setAppScrollDirection(1);
-					    } else if (!target.closest('.card.app')) {
-					        setAppScrollDirection(0);
-					    }
+						
+						if (!inAppWindow && row === 1) {
+						    setRow(hasWatch ? 0 : 1);
+						    if (hasWatch) setCol(Math.min(heroIdx, cards.length - 1));
+						}
+						
+						if (rectWindow && e.clientY >= rectWindow.top && e.clientY <= rectWindow.bottom) {
+						    if (e.clientX < rectWindow.left && appStart > 0) {
+						        setAppScrollDirection(-1);
+						    } else if (e.clientX > rectWindow.right && appStart < appMaxStart) {
+						        setAppScrollDirection(1);
+						    } else {
+						        setAppScrollDirection(0);
+						    }
+						} else {
+						    setAppScrollDirection(0);
+						}
 					}}
 				    onMouseLeave={() => setAppScrollDirection(0)}
 				>
