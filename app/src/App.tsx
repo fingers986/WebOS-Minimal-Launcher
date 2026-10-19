@@ -545,8 +545,18 @@ export default function App () {
 		const p = lastPointer.current;
 		if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) < 6) return;
 		lastPointer.current = {x: e.clientX, y: e.clientY};
-		if (r === 0) {
-		    setAppScrollDirection(0);
+		if (r === 1) {
+			const lastVisible = Math.min(appStart + APP_VISIBLE - 1, apps.length - 1);
+		
+			if (c === lastVisible && appStart < appMaxStart) {
+				setAppScrollDirection(1);
+			} else if (c === appStart && appStart > 0) {
+				setAppScrollDirection(-1);
+			} else {
+				setAppScrollDirection(0);
+			}
+		} else {
+			setAppScrollDirection(0);
 		}
 		setRow(r);
 		setCol(c);
@@ -760,8 +770,8 @@ export default function App () {
 					onMouseMove={(e) => {
 						const rect = e.currentTarget.getBoundingClientRect();
 						const x = e.clientX - rect.left;
-						const leftEdge = 48;
-						const rightEdge = rect.width - 12;
+						const leftEdge = 48 + APP_TILE_W;
+						const rightEdge = 48 + APP_STEP * (APP_VISIBLE - 1);
 
 						if (x <= leftEdge && appStart > 0) {
 							setAppScrollDirection(-1);
