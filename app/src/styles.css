@@ -138,11 +138,11 @@ h1 {
     margin: -18px 0 -22px;
 }
 
-.approw {
-    display: flex;
-    gap: 16px;
-    transition: transform 320ms cubic-bezier(0.2, 0.7, 0.2, 1);
-    will-change: transform;
+.approw-window {
+    width: 100%;
+    overflow: hidden;
+    padding: 18px 12px 22px;
+    margin: -18px -12px -22px;
 }
 
 .card.app {
