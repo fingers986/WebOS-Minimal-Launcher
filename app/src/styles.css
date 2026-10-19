@@ -134,8 +134,8 @@ h1 {
 .approw-window {
     width: 100%;
     overflow: hidden;
-    padding: 18px 0 22px;
-    margin: -18px 0 -22px;
+    padding: 18px 12px 22px;
+    margin: -18px -12px -22px;
 }
 
 .card.app {
