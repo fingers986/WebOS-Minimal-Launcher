@@ -63,8 +63,20 @@ export function launchApp (id: string, params: Params = {}): Promise<unknown> {
 }
 
 /** Ids of the apps installed on this TV (from the helper, which may list them). */
-export function installedApps (): Promise<string[]> {
-	return lunaCall<{ids?: string[]}>('tld.my.minimalhome.service', 'installedApps', {}, 5000).then((r) => r.ids || []);
+
+/** Apps installed on this TV, including their launch-point metadata. */
+export interface InstalledApp {
+    id: string;
+    title: string;
+    icon: string;
+    launchPointId: string;
+    visible: boolean;
+    lptype: string;
+}
+
+export function installedApps (): Promise<InstalledApp[]> {
+    return lunaCall<{apps?: InstalledApp[]}>('tld.my.minimalhome.service', 'installedApps', {}, 5000)
+        .then((r) => r.apps || []);
 }
 
 /** The server Jellyfin Native is signed in to (only the address - the helper never hands out its token). */
