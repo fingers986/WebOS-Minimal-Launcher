@@ -166,19 +166,21 @@ function AppIcon ({app}: {app: AppDef}) {
 type Tile = AppDef & {sub?: string; dim?: boolean};
 
 function buildTiles (ports: InputPort[] | null, installed: InstalledApp[] | null): Tile[] {
-    const visibleApps = installed?.filter((a) => a.visible && a.id) ?? [];
-    const installedIds = new Set(visibleApps.map((a) => a.id));
-
-    const list: Tile[] = installed === null
-        ? [...APPS]
-        : APPS.filter((a) => a.input || installedIds.has(a.id));
-
-    const knownIds = new Set(APPS.map((a) => a.id));
-    const seenIds = new Set(list.map((a) => a.id));
+	const visibleApps = installed?.filter((a) => a.visible && a.id) ?? [];
+	
+	const list: Tile[] = visibleApps
+	    .filter((a) => !a.id.startsWith('com.webos.app.hdmi'))
+	    .map((a) => ({
+	        id: a.id,
+	        title: a.title || a.id,
+	        icon: a.icon || undefined
+	    }));
+	
+	const seenIds = new Set(list.map((a) => a.id));
 
     const extraApps: Tile[] = [];
     for (const a of visibleApps) {
-        if (knownIds.has(a.id) || seenIds.has(a.id)) continue;
+        if (seenIds.has(a.id)) continue;
         if (a.id.startsWith('com.webos.app.hdmi')) continue;
 
         seenIds.add(a.id);
