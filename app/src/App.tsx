@@ -774,8 +774,10 @@ export default function App () {
 				
 				        if (x <= rect.left + edgeZone && appStart > 0) {
 				            setAppScrollDirection(-1);
+				            return;
 				        } else if (x >= rect.right - edgeZone && appStart < appMaxStart) {
 				            setAppScrollDirection(1);
+				            return;
 				        } else if (
 				            x > rect.left + edgeZone &&
 				            x < rect.right - edgeZone
