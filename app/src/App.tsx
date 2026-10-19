@@ -766,22 +766,22 @@ export default function App () {
 			<section className="block apps">
 				<div className="label">Apps</div>
 				<div
-					className="approw-clip"
-					onMouseMove={(e) => {
-						const rect = e.currentTarget.getBoundingClientRect();
-						const x = e.clientX - rect.left;
-						const leftEdge = 48 + APP_TILE_W;
-						const rightEdge = 48 + APP_STEP * (APP_VISIBLE - 1);
-
-						if (x <= leftEdge && appStart > 0) {
-							setAppScrollDirection(-1);
-						} else if (x >= rightEdge && appStart < appMaxStart) {
-							setAppScrollDirection(1);
-						} else {
-							setAppScrollDirection(0);
-						}
-					}}
-					onMouseLeave={() => setAppScrollDirection(0)}
+				    className="approw-clip"
+				    onMouseMove={(e) => {
+				        const rect = e.currentTarget.getBoundingClientRect();
+				        const x = e.clientX;
+				        const leftEdge = rect.left + APP_TILE_W;
+				        const rightEdge = rect.right - APP_TILE_W;
+				
+				        if (x <= leftEdge && appStart > 0) {
+				            setAppScrollDirection(-1);
+				        } else if (x >= rightEdge && appStart < appMaxStart) {
+				            setAppScrollDirection(1);
+				        } else {
+				            setAppScrollDirection(0);
+				        }
+				    }}
+				    onMouseLeave={() => setAppScrollDirection(0)}
 				>
 					<div className="approw-window">
 						<div
