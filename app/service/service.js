@@ -299,10 +299,27 @@ service.register('openItem', function (m) {
 });
 
 // Which apps are installed, so the launcher only shows tiles for those (ids only).
+
+ // Return the launch points known to webOS, including each app's title and icon.
 service.register('installedApps', function (m) {
-	lunaOnce('luna://com.webos.applicationManager/listApps', {}, function (e, out) {
-		var ids = (out && out.apps || []).map(function (a) { return a.id; }).filter(Boolean);
-		m.respond({ returnValue: ids.length > 0, ids: ids });
+	lunaOnce('luna://com.webos.applicationManager/listLaunchPoints', {}, function (e, out) {
+		var points = out && Array.isArray(out.launchPoints) ? out.launchPoints : [];
+		var apps = points
+			.filter(function (a) { return a && a.id; })
+			.map(function (a) {
+				return {
+					id: a.id,
+					title: a.title || a.id,
+					icon: a.icon || '',
+					launchPointId: a.launchPointId || '',
+					visible: a.visible !== false,
+					lptype: a.lptype || 'default'
+				};
+			});
+		m.respond({
+			returnValue: !!(out && out.returnValue === true),
+			apps: apps
+		});
 	});
 });
 
