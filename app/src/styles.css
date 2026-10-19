@@ -132,7 +132,10 @@ h1 {
 }
 
 .apps-hover-zone {
-    width: 100%;
+    position: relative;
+    left: var(--pad);
+    width: calc(100% + var(--pad));
+    margin-left: calc(-1 * var(--pad));
 }
 
 .approw-window {
