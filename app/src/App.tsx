@@ -211,25 +211,6 @@ function buildTiles (ports: InputPort[] | null, installed: InstalledApp[] | null
         };
     });
 
-    const extraInputs: Tile[] = ports
-        .filter((p) => p.plugged && !APPS.some((a) => a.input === p.id))
-        .map((p) => {
-            const port = p.id.replace('_', ' ');
-            const title = name(p, p.id, port);
-            return {
-                id: p.appId,
-                title,
-                glyph: 'hdmi',
-                input: p.id,
-                sub: title !== port ? port : undefined
-            };
-        });
-
-    const at = tiles.findIndex((t) => t.id === 'com.palm.app.settings');
-    if (extraInputs.length) {
-        tiles.splice(at < 0 ? tiles.length : at, 0, ...extraInputs);
-    }
-
     return tiles;
 }
 
