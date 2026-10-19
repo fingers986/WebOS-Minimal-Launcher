@@ -767,28 +767,26 @@ export default function App () {
 				<div className="label">Apps</div>
 				<div
 				    className="apps-hover-zone"
-				    onMouseMove={(e) => {
-				        const rect = e.currentTarget.getBoundingClientRect();
-				        const x = e.clientX;
-				        const edgeZone = 220;
-				
-				        if (x <= rect.left + edgeZone && appStart > 0) {
-				            setAppScrollDirection(-1);
-				            return;
-				        } else if (x >= rect.right - edgeZone && appStart < appMaxStart) {
-				            setAppScrollDirection(1);
-				            return;
-				        } else if (
-				            x > rect.left + edgeZone &&
-				            x < rect.right - edgeZone
-				        ) {
-				            const target = e.target as HTMLElement;
-				
-				            if (!target.closest('.card.app')) {
-				                setAppScrollDirection(0);
-				            }
-				        }
-				    }}
+					onMouseMove={(e) => {
+					    const rect = e.currentTarget.getBoundingClientRect();
+					    const x = e.clientX;
+					    const edgeZone = 220;
+					    const target = e.target as HTMLElement;
+					    const inAppWindow = !!target.closest('.approw-window');
+					
+					    if (!inAppWindow && row === 1) {
+					        setRow(hasWatch ? 0 : 1);
+					        if (hasWatch) setCol(Math.min(heroIdx, cards.length - 1));
+					    }
+					
+					    if (x <= rect.left + edgeZone && appStart > 0) {
+					        setAppScrollDirection(-1);
+					    } else if (x >= rect.right - edgeZone && appStart < appMaxStart) {
+					        setAppScrollDirection(1);
+					    } else if (!target.closest('.card.app')) {
+					        setAppScrollDirection(0);
+					    }
+					}}
 				    onMouseLeave={() => setAppScrollDirection(0)}
 				>
 				    <div className="approw-clip">
