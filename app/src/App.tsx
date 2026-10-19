@@ -770,8 +770,8 @@ export default function App () {
 					onMouseMove={(e) => {
 						const rect = e.currentTarget.getBoundingClientRect();
 						const x = e.clientX - rect.left;
-						const leftEdge = 48 + APP_TILE_W;
-						const rightEdge = 48 + APP_STEP * (APP_VISIBLE - 1);
+						const leftEdge = 48;
+						const rightEdge = rect.width - 12;
 
 						if (x <= leftEdge && appStart > 0) {
 							setAppScrollDirection(-1);
