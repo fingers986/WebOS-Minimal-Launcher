@@ -125,6 +125,8 @@ h1 {
 .cap .s { margin-top: 4px; font-size: 17px; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
 .approw-clip {
+    position: relative;
+    left: var(--pad);
     width: 1790px;
     overflow: visible;
     padding: 18px 12px 22px 48px;
@@ -133,7 +135,6 @@ h1 {
 
 .apps-hover-zone {
     position: relative;
-    left: var(--pad);
     width: calc(100% + var(--pad));
     margin-left: calc(-1 * var(--pad));
 }
