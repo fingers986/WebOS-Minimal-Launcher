@@ -542,41 +542,37 @@ export default function App () {
 	/** Pointer over a card focuses it, but only for REAL pointer movement - a card that slides under a
 	 *  still pointer (the row scrolls) must not steal focus. */
 		const appMaxStart = Math.max(0, apps.length - APP_VISIBLE);
-	const hover = useCallback((r: 0 | 1, c: number, e: ReactMouseEvent) => {
-		const p = lastPointer.current;
-		if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) < 6) return;
-		lastPointer.current = {x: e.clientX, y: e.clientY};
-		if (r === 1) {
-			const appWindow = document.querySelector('.approw-window');
-			if (appWindow && !appWindow.contains(e.target as Node)) {
-				setHideAppHighlight(true);
-				return;
-			}
-			setHideAppHighlight(false);
-		}
-			const lastVisible = Math.min(appStart + APP_VISIBLE - 1, apps.length - 1);
+
+		const hover = useCallback((r: 0 | 1, c: number, e: ReactMouseEvent) => {
+			const p = lastPointer.current;
+			if (Math.abs(e.clientX - p.x) + Math.abs(e.clientY - p.y) < 6) return;
+			lastPointer.current = {x: e.clientX, y: e.clientY};
 		
-			if (c === lastVisible && appStart < appMaxStart) {
-				setAppScrollDirection(1);
-			} else if (c === appStart && appStart > 0) {
-				setAppScrollDirection(-1);
+			if (r === 1) {
+				const lastVisible = Math.min(appStart + APP_VISIBLE - 1, apps.length - 1);
+		
+				if (c === lastVisible && appStart < appMaxStart) {
+					setAppScrollDirection(1);
+				} else if (c === appStart && appStart > 0) {
+					setAppScrollDirection(-1);
+				} else {
+					setAppScrollDirection(0);
+				}
 			} else {
 				setAppScrollDirection(0);
 			}
-		} else {
-			setAppScrollDirection(0);
-		}
-		setRow(r);
-		setCol(c);
-		// diagnostics for real Magic-Remote use (read later over DevTools: window.__hoverLog): how long from the system's
-		// pointer event to the painted frame, and how soon after the launcher came back the first pointer event arrived
-		const born = e.nativeEvent.timeStamp;
-		window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
-			const log = (window.__hoverLog ||= []);
-			log.push({sinceVisible: Math.round(born - visibleAt.current), toFrame: Math.round(performance.now() - born)});
-			if (log.length > 40) log.shift();
-		}));
-	}, [appStart, appMaxStart, apps.length]);
+		
+			setRow(r);
+			setCol(c);
+		
+			const born = e.nativeEvent.timeStamp;
+			window.requestAnimationFrame(() => window.requestAnimationFrame(() => {
+				const log = (window.__hoverLog ||= []);
+				log.push({sinceVisible: Math.round(born - visibleAt.current), toFrame: Math.round(performance.now() - born)});
+				if (log.length > 40) log.shift();
+			}));
+		}, [appStart, appMaxStart, apps.length]);
+
 
 	useEffect(() => {
 		const onKey = (e: KeyboardEvent) => {
