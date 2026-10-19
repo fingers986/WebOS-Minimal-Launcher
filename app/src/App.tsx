@@ -11,6 +11,10 @@ import {downloadsActive, feedLines, fetchFeed, type Feed, type Line} from './lib
 const CARD_W = 296;
 const GAP = 20;
 const VISIBLE = 5;          // wide cards fully visible at once
+const APP_TILE_W = 178;
+const APP_GAP = 16;
+const APP_VIEW_W = 1920 - 96;
+const APP_VISIBLE = 9;
 const JITTER_MS = 150_000;  // OLED guard: nudge the whole UI by ±2px this often
 const IDLE_MS = 60_000;         // no input for this long → idle screen (true black + dim drifting clock)
 const IDLE_DEEP_MS = 600_000;   // …after this much more idle time the clock dims further
@@ -524,6 +528,13 @@ export default function App () {
 	const maxOffset = Math.max(0, (cards.length - VISIBLE) * (CARD_W + GAP));
 	const watchCol = row === 0 ? col : Math.min(heroIdx, Math.max(0, cards.length - 1));   // the watch row keeps its own position while you browse apps
 	const offset = Math.min(maxOffset, Math.max(0, watchCol - 2) * (CARD_W + GAP));
+	const appMaxOffset = Math.max(
+		0,
+		apps.length * (APP_TILE_W + APP_GAP) - APP_GAP - APP_VIEW_W
+	);
+	const appOffset = row === 1
+		? Math.min(appMaxOffset, Math.max(0, (col - (APP_VISIBLE - 1)) * (APP_TILE_W + APP_GAP)))
+		: 0;
 
 	const hh = String(now.getHours()).padStart(2, '0');
 	const mm = String(now.getMinutes()).padStart(2, '0');
@@ -621,17 +632,25 @@ export default function App () {
 
 			<section className="block apps">
 				<div className="label">Apps</div>
-				{/* 9 tiles fill the row; with extra HDMI tiles they narrow so Settings stays on screen */}
-				<div className="approw" style={apps.length > 9 ? {['--tile-w' as string]: `${Math.floor((1920 - 2 * 96 - 16 * (apps.length - 1)) / apps.length)}px`} : undefined}>
-					{apps.map((a, i) => (
-						<div key={a.id} className={'card app' + (row === 1 && col === i ? ' on' : '') + (a.dim ? ' dim' : '')}
-							onMouseMove={(e) => hover(1, i, e)} onClick={() => { setRow(1); setCol(i); activate(1, i); }}>
-							<AppIcon app={a} />
-							<div className="app-title">{a.title}</div>
-							{a.sub ? <div className="app-sub">{a.sub}</div> : null}
-							<div className="ring" />
-						</div>
-					))}
+				<div className="approw-clip">
+					<div
+						className="approw"
+						style={{transform: `translate3d(${-appOffset}px,0,0)`}}
+					>
+						{apps.map((a, i) => (
+							<div
+								key={a.id}
+								className={'card app' + (row === 1 && col === i ? ' on' : '') + (a.dim ? ' dim' : '')}
+								onMouseMove={(e) => hover(1, i, e)}
+								onClick={() => { setRow(1); setCol(i); activate(1, i); }}
+							>
+								<AppIcon app={a} />
+								<div className="app-title">{a.title}</div>
+								{a.sub ? <div className="app-sub">{a.sub}</div> : null}
+								<div className="ring" />
+							</div>
+						))}
+					</div>
 				</div>
 			</section>
 
