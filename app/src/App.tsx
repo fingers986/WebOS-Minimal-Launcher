@@ -249,6 +249,27 @@ export default function App () {
 	const [appStart, setAppStart] = useState(0);
 	const [appScrollDirection, setAppScrollDirection] = useState<-1 | 0 | 1>(0);
 	const [hideAppHighlight, setHideAppHighlight] = useState(false);
+	
+		useEffect(() => {
+			const updateAppHighlight = (e: PointerEvent) => {
+				const appWindow = document.querySelector('.approw-window');
+				const rect = appWindow?.getBoundingClientRect();
+		
+				const inside = !!rect &&
+					e.clientX >= rect.left &&
+					e.clientX <= rect.right &&
+					e.clientY >= rect.top &&
+					e.clientY <= rect.bottom;
+		
+				setHideAppHighlight(!inside);
+			};
+		
+			window.addEventListener('pointermove', updateAppHighlight);
+			return () => {
+				window.removeEventListener('pointermove', updateAppHighlight);
+			};
+		}, []);
+
 	const [heroIdx, setHeroIdx] = useState(0);
 	const [toast, setToast] = useState('');
 	const [jitter, setJitter] = useState<[number, number]>([0, 0]);
