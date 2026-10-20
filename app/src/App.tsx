@@ -848,13 +848,14 @@ export default function App () {
 								<div
 									key={a.id}
 									className={'card app' + (row === 1 && col === i && !hideAppHighlight ? ' on' : '') + (a.dim ? ' dim' : '')}
-									onMouseMove={(e) => hover(1, i, e)}
+									onMouseMove={(e) => { setHoveredAppIndex(i); hover(1, i, e); }}
+									onMouseLeave={() => setHoveredAppIndex(null)}
 									onClick={() => { setRow(1); setCol(i); activate(1, i); }}
 								>
 									<AppIcon app={a} />
 									<AppTitle
 										title={a.title}
-										active={row === 1 && col === i && !hideAppHighlight}
+										active={hoveredAppIndex === i}
 									/>
 									{a.sub ? <div className="app-sub">{a.sub}</div> : null}
 									<div className="ring" />
