@@ -15,7 +15,6 @@ const APP_TILE_W = 178;
 const APP_GAP = 16;
 const APP_VISIBLE = 9;
 const APP_STEP = APP_TILE_W + APP_GAP;
-const JITTER_MS = 150_000;  // OLED guard: nudge the whole UI by ±2px this often
 const IDLE_MS = 60_000;         // no input for this long → idle screen (true black + dim drifting clock)
 const IDLE_DEEP_MS = 600_000;   // …after this much more idle time the clock dims further
 const IDLE_MOVE_MS = 60_000;    // the idle clock drifts to a new spot this often (fades out, jumps, fades in) - the info line changes then too
@@ -303,7 +302,6 @@ export default function App () {
 
 	const [heroIdx, setHeroIdx] = useState(0);
 	const [toast, setToast] = useState('');
-	const [jitter, setJitter] = useState<[number, number]>([0, 0]);
 	const toastTimer = useRef(0);
 	const sessionRef = useRef<Session | null>(null);
 	const [idle, setIdle] = useState(false);
@@ -533,13 +531,6 @@ export default function App () {
 		return () => { alive = false; window.clearTimeout(timer); document.removeEventListener('visibilitychange', refresh); };
 	}, []);
 
-	// OLED guard.
-	useEffect(() => {
-		const id = window.setInterval(() => {
-			setJitter([Math.round(Math.random() * 4) - 2, Math.round(Math.random() * 4) - 2]);
-		}, JITTER_MS);
-		return () => window.clearInterval(id);
-	}, []);
 
 	// --- focus --------------------------------------------------------------
 	// Start on the first continue-watching card when there is one, otherwise on the apps.
@@ -718,7 +709,7 @@ export default function App () {
 	const date = now.toLocaleDateString('en-GB', {weekday: 'long', day: 'numeric', month: 'long'});
 
 	return (
-		<div className="root" style={{transform: `translate(${jitter[0]}px, ${jitter[1]}px)`}}>
+		<div className="root">
 			<div className={'ui' + (idle ? ' ui-off' : '')}>
 			<div className="wash" />
 			<Backdrop url={hero?.backdrop ?? ''} />
