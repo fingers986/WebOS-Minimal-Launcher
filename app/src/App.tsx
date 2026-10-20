@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent as ReactMouseEvent} from 'react';
 import {HDMI_NAMES, type AppDef} from './lib/apps';
 import {
 	AuthError, JELLYFIN_APP_ID, checkServer, clearSession, loadServer, saveServer, fetchContinue, loadSession, quickConnectEnabled,
@@ -160,6 +160,46 @@ function AppIcon ({app}: {app: AppDef}) {
             {(app.title.trim().charAt(0) || 'A').toUpperCase()}
         </span>
     );
+}
+
+function AppTitle ({title, active}: {title: string; active: boolean}) {
+	const boxRef = useRef<HTMLDivElement | null>(null);
+	const textRef = useRef<HTMLSpanElement | null>(null);
+	const [distance, setDistance] = useState(0);
+
+	useEffect(() => {
+		const box = boxRef.current;
+		const text = textRef.current;
+		if (!box || !text) return;
+
+		const measure = () => {
+			const next = Math.max(0, text.scrollWidth - box.clientWidth);
+			setDistance((prev) => prev === next ? prev : next);
+		};
+
+		measure();
+
+		const observer = typeof ResizeObserver !== 'undefined'
+			? new ResizeObserver(measure)
+			: null;
+
+		observer?.observe(box);
+		observer?.observe(text);
+
+		return () => observer?.disconnect();
+	}, [title]);
+
+	const overflowing = distance > 1;
+
+	return (
+		<div
+			ref={boxRef}
+			className={'app-title' + (overflowing && active ? ' marquee' : '')}
+			style={{'--app-marquee-distance': `${distance}px`} as CSSProperties}
+		>
+			<span ref={textRef} className="app-title-track">{title}</span>
+		</div>
+	);
 }
 
 /** An app tile as shown: HDMI tiles carry the plugged-in device's name, the port as a second line, and dim when nothing is on. */
@@ -805,7 +845,10 @@ export default function App () {
 									onClick={() => { setRow(1); setCol(i); activate(1, i); }}
 								>
 									<AppIcon app={a} />
-									<div className="app-title">{a.title}</div>
+									<AppTitle
+										title={a.title}
+										active={row === 1 && col === i && !hideAppHighlight}
+									/>
 									{a.sub ? <div className="app-sub">{a.sub}</div> : null}
 									<div className="ring" />
 								</div>
