@@ -150,6 +150,14 @@ h1 {
 	will-change: transform;
 }
 
+.app-title-area {
+    position: relative;
+    width: 178px;
+    height: 34px;
+    margin-top: 8px;
+    overflow: hidden;
+}
+
 .card.app {
     width: 178px;
     height: 158px;
