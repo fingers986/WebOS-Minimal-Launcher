@@ -313,23 +313,23 @@ export default function App () {
 	const [hideAppHighlight, setHideAppHighlight] = useState(false);
 	
 		useEffect(() => {
-			const updateAppHighlight = (e: PointerEvent) => {
-				const appWindow = document.querySelector('.approw-window');
-				const rect = appWindow?.getBoundingClientRect();
+		    const updateAppHighlight = (e: PointerEvent) => {
+		        const appRow = document.querySelector('.approw');
+		        const rect = appRow?.getBoundingClientRect();
 		
-				const inside = !!rect &&
-					e.clientX >= rect.left &&
-					e.clientX <= rect.right &&
-					e.clientY >= rect.top &&
-					e.clientY <= rect.bottom;
+		        const inside = !!rect &&
+		            e.clientX >= rect.left &&
+		            e.clientX <= rect.right &&
+		            e.clientY >= rect.top &&
+		            e.clientY <= rect.bottom;
 		
-				setHideAppHighlight(!inside || appScrollDirection !== 0);
-			};
+		        setHideAppHighlight(!inside || appScrollDirection !== 0);
+		    };
 		
-			window.addEventListener('pointermove', updateAppHighlight);
-			return () => {
-				window.removeEventListener('pointermove', updateAppHighlight);
-			};
+		    window.addEventListener('pointermove', updateAppHighlight);
+		    return () => {
+		        window.removeEventListener('pointermove', updateAppHighlight);
+		    };
 		}, [appScrollDirection]);
 
 	const [heroIdx, setHeroIdx] = useState(0);
