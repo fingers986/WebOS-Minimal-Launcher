@@ -311,26 +311,7 @@ export default function App () {
 	const [appStart, setAppStart] = useState(0);
 	const [appScrollDirection, setAppScrollDirection] = useState<-1 | 0 | 1>(0);
 	const [hideAppHighlight, setHideAppHighlight] = useState(false);
-	
-		useEffect(() => {
-		    const updateAppHighlight = (e: PointerEvent) => {
-		        const appRow = document.querySelector('.approw');
-		        const rect = appRow?.getBoundingClientRect();
-		
-		        const inside = !!rect &&
-		            e.clientX >= rect.left &&
-		            e.clientX <= rect.right &&
-		            e.clientY >= rect.top &&
-		            e.clientY <= rect.bottom;
-		
-		        setHideAppHighlight(!inside || appScrollDirection !== 0);
-		    };
-		
-		    window.addEventListener('pointermove', updateAppHighlight);
-		    return () => {
-		        window.removeEventListener('pointermove', updateAppHighlight);
-		    };
-		}, [appScrollDirection]);
+
 
 	const [heroIdx, setHeroIdx] = useState(0);
 	const [toast, setToast] = useState('');
@@ -830,72 +811,93 @@ export default function App () {
 				</section>
 			) : null}
 
+
 			<section className="block apps">
-				<div className="label">Apps</div>
-				<div
-				    className="apps-hover-zone"
-					onMouseMove={(e) => {
-						const appWindow = document.querySelector('.approw-window');
-						const rectWindow = appWindow?.getBoundingClientRect();
-						const rectClip = document.querySelector('.approw-clip')?.getBoundingClientRect();
-						
-						const inAppWindow = !!rectWindow && !!rectClip &&
-						    e.clientX >= rectWindow.left &&
-						    e.clientX <= rectWindow.right &&
-						    e.clientY >= rectClip.top &&
-						    e.clientY <= rectClip.bottom;
-						
-						setHideAppHighlight(!inAppWindow || appScrollDirection !== 0);
-						
-						if (!inAppWindow && row === 1) {
-						    setRow(hasWatch ? 0 : 1);
-						    if (hasWatch) setCol(Math.min(heroIdx, cards.length - 1));
-						}
-						
-						if (rectWindow && rectClip && e.clientY >= rectClip.top && e.clientY <= rectClip.bottom) {
-						    if (e.clientX < rectWindow.left && appStart > 0) {
-						        setAppScrollDirection(-1);
-						    } else if (e.clientX > rectWindow.right && appStart < appMaxStart) {
-						        setAppScrollDirection(1);
-						    } else {
-						        setAppScrollDirection(0);
-						    }
-						} else {
-						    setAppScrollDirection(0);
-						}
-					}}
-				    onMouseLeave={() => setAppScrollDirection(0)}
-				>
-				    <div className="approw-clip">
-					<div className="approw-window">
-						<div
-							className="approw"
-							style={{transform: `translate3d(${-appOffset}px,0,0)`}}
-						>
-							{apps.map((a, i) => (
-								<div
-									key={a.id}
-									className={'card app' + (row === 1 && col === i && !hideAppHighlight ? ' on' : '') + (a.dim ? ' dim' : '')}
-									onMouseMove={(e) => hover(1, i, e)}
-									onClick={() => { setRow(1); setCol(i); activate(1, i); }}
-								>
-									<div className="app-visual">
-									    <AppIcon app={a}/>
-									</div>
-									
-									<AppTitle
-									    title={a.title}
-									    active={row === 1 && col === i && !hideAppHighlight}
-									/>
-									{a.sub ? <div className="app-sub">{a.sub}</div> : null}
-									<div className="ring" />
-								</div>
-							))}
-						</div>
-					</div>
-				</div>
-				</div>
-			</section>
+			    <div className="label">Apps</div>
+			
+			    <div
+			        className="apps-hover-zone"
+			        onMouseMove={(e) => {
+			            const appWindow = document.querySelector('.approw-window');
+			            const rect = appWindow?.getBoundingClientRect();
+			
+			            if (!rect) return;
+			
+			            const inVerticalRange =
+			                e.clientY >= rect.top &&
+			                e.clientY <= rect.bottom;
+			
+			            const inAppRow =
+			                inVerticalRange &&
+			                e.clientX >= rect.left &&
+			                e.clientX <= rect.right;
+			
+			            setHideAppHighlight(!inAppRow || appScrollDirection !== 0);
+			
+			            if (inVerticalRange) {
+			                if (e.clientX < rect.left && appStart > 0) {
+			                    setAppScrollDirection(-1);
+			                } else if (e.clientX > rect.right && appStart < appMaxStart) {
+			                    setAppScrollDirection(1);
+			                } else {
+			                    setAppScrollDirection(0);
+			                }
+			            } else {
+			                setAppScrollDirection(0);
+			            }
+			        }}
+			        onMouseLeave={() => {
+			            setAppScrollDirection(0);
+			            setHideAppHighlight(true);
+			        }}
+			    >
+			        <div className="approw-clip">
+			            <div className="approw-window">
+			                <div
+			                    className="approw"
+			                    style={{transform: `translate3d(${-appOffset}px,0,0)`}}
+			                >
+			                    {apps.map((a, i) => (
+			                        <div
+			                            key={a.id}
+			                            className={
+			                                'card app' +
+			                                (row === 1 && col === i && !hideAppHighlight ? ' on' : '') +
+			                                (a.dim ? ' dim' : '')
+			                            }
+			                            onMouseMove={(e) => hover(1, i, e)}
+			                            onClick={() => {
+			                                setRow(1);
+			                                setCol(i);
+			                                activate(1, i);
+			                            }}
+			                        >
+			                            <div className="app-visual">
+			                                <AppIcon app={a} />
+			                            </div>
+			                            <div className="ring" />
+			                        </div>
+			                    ))}
+			                </div>
+			            </div>
+			        </div>
+			
+				    </div>
+				
+				    <div className="app-title-area">
+				        {apps[col] ? (
+				            <>
+				                <AppTitle
+				                    title={apps[col].title}
+				                    active={row === 1 && !hideAppHighlight}
+				                />
+				                {apps[col].sub ? (
+				                    <div className="app-sub">{apps[col].sub}</div>
+				                ) : null}
+				            </>
+				        ) : null}
+				    </div>
+				</section>
 
 			</div>
 
