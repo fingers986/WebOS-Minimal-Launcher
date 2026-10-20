@@ -165,7 +165,7 @@ h1 {
 .app-title {
 	width: 100%;
 	min-width: 0;
-	padding: 0 10px;
+	padding: 0 14px;
 	box-sizing: border-box;
 	overflow: hidden;
 	white-space: nowrap;
@@ -189,7 +189,7 @@ h1 {
 }
 
 .app-title.marquee .app-title-track {
-	animation: app-title-marquee 7s linear 800ms infinite;
+	animation: app-title-marquee var(--app-marquee-duration) linear 300ms infinite;
 	will-change: transform;
 }
 
