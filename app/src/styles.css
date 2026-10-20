@@ -149,47 +149,73 @@ h1 {
 }
 
 .card.app {
-	width: 178px;
-	height: 124px;
-	border-radius: 18px;
-	background: var(--surface);
-	display: flex;
-	flex-direction: column;
-	align-items: center;
-	justify-content: center;
-	gap: 12px;
+    width: 178px;
+    height: 158px;
+    border-radius: 18px;
+    background: transparent;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
 }
-.card.app.on { background: var(--surface-hi); }
+
+.card.app.on {
+    background: transparent;
+}
+
+.app-visual {
+    position: relative;
+    flex: none;
+    width: 178px;
+    height: 100px;
+    overflow: hidden;
+    border-radius: 14px;
+    background: var(--surface);
+}
+
+.app-artwork {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+    z-index: 1;
+    pointer-events: none;
+}
+
 .app-icon {
-	position: absolute;
-	top: 0;
-	left: 50%;
-	transform: translateX(-50%);
-	width: auto;
-	height: 100%;
-	max-width: 100%;
-	border-radius: 0;
-	display: block;
-	object-fit: contain;
-	object-position: center;
-	z-index: 1;
-	pointer-events: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: auto;
+    height: auto;
+    max-width: 68%;
+    max-height: 78%;
+    display: block;
+    object-fit: contain;
+    object-position: center;
+    z-index: 1;
+    pointer-events: none;
 }
 
 .app-glyph {
-	position: absolute;
-	top: 0;
-	left: 50%;
-	transform: translateX(-50%);
-	width: auto;
-	height: 100%;
-	max-width: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	color: var(--text);
-	z-index: 1;
-	pointer-events: none;
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    max-width: 100%;
+    color: var(--text);
+    z-index: 1;
+    pointer-events: none;
+}
+
+.app-glyph-fallback {
+    font-size: 48px;
 }
 
 .app-title {
@@ -326,6 +352,6 @@ h1 {
 .idle.deep .ic-info b { color: rgba(243, 245, 249, 0.07); }
 
 /* --- HDMI tiles: device name + port; dimmed while nothing (powered) is plugged in ------------------------- */
-.card.app .app-sub { margin-top: -8px; font-size: 15px; font-weight: 500; letter-spacing: 0.02em; color: var(--faint); }
+.card.app .app-sub { margin-top: 0; font-size: 15px; font-weight: 500; letter-spacing: 0.02em; color: var(--faint); }
 .card.app.dim { opacity: 0.42; transition: transform 200ms cubic-bezier(0.2, 0.7, 0.2, 1), opacity 300ms ease; }
 .card.app.dim.on { opacity: 0.7; }   /* still reachable: the device may just be asleep */
