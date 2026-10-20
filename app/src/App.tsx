@@ -837,11 +837,13 @@ export default function App () {
 					onMouseMove={(e) => {
 						const appWindow = document.querySelector('.approw-window');
 						const rectWindow = appWindow?.getBoundingClientRect();
-						const inAppWindow = !!rectWindow &&
+						const rectClip = document.querySelector('.approw-clip')?.getBoundingClientRect();
+						
+						const inAppWindow = !!rectWindow && !!rectClip &&
 						    e.clientX >= rectWindow.left &&
 						    e.clientX <= rectWindow.right &&
-						    e.clientY >= rectWindow.top &&
-						    e.clientY <= rectWindow.bottom;
+						    e.clientY >= rectClip.top &&
+						    e.clientY <= rectClip.bottom;
 						
 						setHideAppHighlight(!inAppWindow || appScrollDirection !== 0);
 						
@@ -850,7 +852,7 @@ export default function App () {
 						    if (hasWatch) setCol(Math.min(heroIdx, cards.length - 1));
 						}
 						
-						if (rectWindow && e.clientY >= rectWindow.top && e.clientY <= rectWindow.bottom) {
+						if (rectWindow && rectClip && e.clientY >= rectClip.top && e.clientY <= rectClip.bottom) {
 						    if (e.clientX < rectWindow.left && appStart > 0) {
 						        setAppScrollDirection(-1);
 						    } else if (e.clientX > rectWindow.right && appStart < appMaxStart) {
