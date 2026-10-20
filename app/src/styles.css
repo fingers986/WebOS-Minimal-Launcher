@@ -162,8 +162,45 @@ h1 {
 .card.app.on { background: var(--surface-hi); }
 .app-icon { width: 56px; height: 56px; border-radius: 13px; display: block; object-fit: cover; }
 .app-glyph { width: 56px; height: 56px; display: flex; align-items: center; justify-content: center; color: var(--text); }
-.app-title { font-size: 19px; font-weight: 550; color: var(--muted); }
-.card.app.on .app-title { color: var(--text); }
+.app-title {
+	width: 100%;
+	min-width: 0;
+	padding: 0 10px;
+	box-sizing: border-box;
+	overflow: hidden;
+	white-space: nowrap;
+	text-align: center;
+	font-size: 19px;
+	line-height: 1.2;
+	font-weight: 550;
+	color: var(--muted);
+}
+
+.card.app.on .app-title {
+	color: var(--text);
+}
+
+.app-title-track {
+	display: inline-block;
+	width: max-content;
+	max-width: none;
+	white-space: nowrap;
+	transform: translateX(0);
+}
+
+.app-title.marquee .app-title-track {
+	animation: app-title-marquee 7s linear 800ms infinite;
+	will-change: transform;
+}
+
+@keyframes app-title-marquee {
+	from {
+		transform: translateX(0);
+	}
+	to {
+		transform: translateX(calc(-1 * var(--app-marquee-distance)));
+	}
+}
 
 /* --- Jellyfin sign-in ------------------------------------------------------------ */
 .cx-input {
