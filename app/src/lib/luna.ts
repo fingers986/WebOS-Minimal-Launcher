@@ -69,6 +69,7 @@ export interface InstalledApp {
     id: string;
     title: string;
     icon: string;
+    artwork?: string;
     launchPointId: string;
     visible: boolean;
     lptype: string;
@@ -85,6 +86,9 @@ interface LaunchPoint {
     title?: string;
     icon?: string;
     largeIcon?: string;
+    extraLargeIcon?: string;
+    bgImage?: string;
+    bgImages?: string | string[];
     launchPointId?: string;
     hidden?: boolean;
     lptype?: string;
@@ -93,6 +97,7 @@ interface LaunchPoint {
 const HBCHANNEL_SERVICE = 'org.webosbrew.hbchannel.service';
 const SAFE_ICON_PATH = /^\/[A-Za-z0-9._\/+@-]+$/;
 const iconCache: Record<string, string> = {};
+const artworkCache: Record<string, string> = {};
 
 function shellQuote(value: string): string {
     return "'" + value.replace(/'/g, "'\\''") + "'";
@@ -142,51 +147,96 @@ export function installedApps(): Promise<InstalledApp[]> {
                 app.id !== 'tld.my.minimalhome'
         );
 
-        const missing: { id: string; path: string }[] = [];
-
-        for (const app of points) {
-            const path = app.largeIcon || app.icon || '';
-            if (!path || !SAFE_ICON_PATH.test(path)) continue;
-
-            if (!iconCache[app.id]) {
-                missing.push({ id: app.id, path });
-            }
-        }
-
-        const loadIcons = (): Promise<void> => {
-            if (!missing.length) return Promise.resolve();
-
-            const script = missing
-                .map(
-                    (item, index) =>
-                        `printf '%d ' ${index}; base64 ${shellQuote(item.path)} 2>/dev/null | tr -d '\\n'; echo`
-                )
-                .join('; ');
-
-            return homebrewExec(script, 15000).then((output) => {
-                for (const line of output.split('\n')) {
-                    const match = /^(\d+) ([A-Za-z0-9+/=]+)$/.exec(line);
-                    if (!match) continue;
-
-                    const item = missing[Number(match[1])];
-                    if (!item) continue;
-
-                    iconCache[item.id] =
-                        `data:image/png;base64,${match[2]}`;
-                }
-            });
-        };
-
-        return loadIcons().then(() =>
-            points.map((app) => ({
-                id: app.id,
-                title: app.title || app.id,
-                icon: iconCache[app.id] || '',
-                launchPointId: app.launchPointId || '',
-                visible: app.hidden !== true,
-                lptype: app.lptype || 'default'
-            }))
-        );
+		const missing: {
+		    id: string;
+		    path: string;
+		    kind: 'icon' | 'artwork';
+		}[] = [];
+		
+		for (const app of points) {
+		    const iconPath = app.largeIcon || app.icon || '';
+		
+		    if (
+		        iconPath &&
+		        SAFE_ICON_PATH.test(iconPath) &&
+		        !iconCache[app.id]
+		    ) {
+		        missing.push({
+		            id: app.id,
+		            path: iconPath,
+		            kind: 'icon',
+		        });
+		    }
+		
+		    const bgImages = Array.isArray(app.bgImages)
+		        ? app.bgImages
+		        : typeof app.bgImages === 'string'
+		            ? [app.bgImages]
+		            : [];
+		
+		    const artworkPath = [
+		        app.bgImage || '',
+		        ...bgImages,
+		        app.extraLargeIcon || '',
+		    ].find((path) => path && SAFE_ICON_PATH.test(path));
+		
+		    if (artworkPath && !artworkCache[app.id]) {
+		        missing.push({
+		            id: app.id,
+		            path: artworkPath,
+		            kind: 'artwork',
+		        });
+		    }
+		}
+		
+		const loadIcons = (): Promise<void> => {
+		    if (!missing.length) return Promise.resolve();
+		
+		    const script = missing.map((item, index) =>
+		        `printf '%d ' ${index}; base64 ${shellQuote(item.path)} 2>/dev/null | tr -d '\\n'; echo`
+		    ).join('; ');
+		
+		    return homebrewExec(script, 15000).then((output) => {
+		        for (const line of output.split('\n')) {
+		            const match = /^(\d+) ([A-Za-z0-9+/=]+)$/.exec(line);
+		            if (!match) continue;
+		
+		            const item = missing[Number(match[1])];
+		            if (!item) continue;
+		
+		            const ext = item.path.toLowerCase().split('.').pop();
+		
+		            const mime =
+		                ext === 'jpg' || ext === 'jpeg'
+		                    ? 'image/jpeg'
+		                    : ext === 'webp'
+		                        ? 'image/webp'
+		                        : ext === 'svg'
+		                            ? 'image/svg+xml'
+		                            : 'image/png';
+		
+		            const dataUrl = `data:${mime};base64,${match[2]}`;
+		
+		            if (item.kind === 'artwork') {
+		                artworkCache[item.id] = dataUrl;
+		            } else {
+		                iconCache[item.id] = dataUrl;
+		            }
+		        }
+		    });
+		};
+		
+		return loadIcons().then(() =>
+		    points.map((app) => ({
+		        id: app.id,
+		        title: app.title || app.id,
+		        icon: iconCache[app.id] || '',
+		        artwork: artworkCache[app.id] || undefined,
+		        launchPointId: app.launchPointId || '',
+		        visible: app.hidden !== true,
+		        lptype: app.lptype || 'default',
+		    }))
+		);
     });
 }
 
