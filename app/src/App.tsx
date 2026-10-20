@@ -199,11 +199,13 @@ function AppTitle ({title, active}: {title: string; active: boolean}) {
 			className={'app-title' + (active ? ' visible' : '') + (overflowing && active ? ' marquee' : '')}
 			style={{'--app-marquee-distance': `${distance}px`, '--app-marquee-duration': `${distance / 60}s`} as CSSProperties}
 		>
-			<div className="app-title-track">
-				<span ref={textRef} className="app-title-copy">{title}</span>
-				{overflowing && active ? (
-					<span className="app-title-copy" aria-hidden="true">{title}</span>
-				) : null}
+			<div className="app-title-viewport">
+				<div className="app-title-track">
+					<span ref={textRef} className="app-title-copy">{title}</span>
+					{overflowing && active ? (
+						<span className="app-title-copy" aria-hidden="true">{title}</span>
+					) : null}
+				</div>
 			</div>
 		</div>
 	);
