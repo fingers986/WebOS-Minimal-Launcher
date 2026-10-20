@@ -311,7 +311,6 @@ export default function App () {
 	const [appStart, setAppStart] = useState(0);
 	const [appScrollDirection, setAppScrollDirection] = useState<-1 | 0 | 1>(0);
 	const [hideAppHighlight, setHideAppHighlight] = useState(false);
-	const [hoveredAppIndex, setHoveredAppIndex] = useState<number | null>(null);
 	
 		useEffect(() => {
 			const updateAppHighlight = (e: PointerEvent) => {
@@ -875,8 +874,7 @@ export default function App () {
 								<div
 									key={a.id}
 									className={'card app' + (row === 1 && col === i && !hideAppHighlight ? ' on' : '') + (a.dim ? ' dim' : '')}
-									onMouseMove={(e) => { setHoveredAppIndex(i); hover(1, i, e); }}
-									onMouseLeave={() => setHoveredAppIndex(null)}
+									onMouseMove={(e) => hover(1, i, e)}
 									onClick={() => { setRow(1); setCol(i); activate(1, i); }}
 								>
 									<div className="app-visual">
