@@ -173,7 +173,9 @@ function AppTitle ({title, active}: {title: string; active: boolean}) {
 		if (!box || !text) return;
 
 		const measure = () => {
-			const next = Math.max(0, text.scrollWidth - box.clientWidth);
+			const availableWidth = box.clientWidth - 28;
+			const textWidth = text.scrollWidth;
+			const next = textWidth > availableWidth ? textWidth + 56 : 0;
 			setDistance((prev) => prev === next ? prev : next);
 		};
 
@@ -189,15 +191,20 @@ function AppTitle ({title, active}: {title: string; active: boolean}) {
 		return () => observer?.disconnect();
 	}, [title]);
 
-	const overflowing = distance > 1;
+	const overflowing = distance > 0;
 
 	return (
 		<div
 			ref={boxRef}
-			className={'app-title' + (overflowing && active ? ' marquee' : '')}
+			className={'app-title' + (active ? ' visible' : '') + (overflowing && active ? ' marquee' : '')}
 			style={{'--app-marquee-distance': `${distance}px`, '--app-marquee-duration': `${distance / 60}s`} as CSSProperties}
 		>
-			<span ref={textRef} className="app-title-track">{title}</span>
+			<div className="app-title-track">
+				<span ref={textRef} className="app-title-copy">{title}</span>
+				{overflowing && active ? (
+					<span className="app-title-copy" aria-hidden="true">{title}</span>
+				) : null}
+			</div>
 		</div>
 	);
 }
