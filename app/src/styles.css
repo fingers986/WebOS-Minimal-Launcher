@@ -181,15 +181,25 @@ h1 {
 }
 
 .app-title-track {
-	display: inline-block;
+	display: flex;
 	width: max-content;
-	max-width: none;
+	gap: 56px;
 	white-space: nowrap;
 	transform: translateX(0);
 }
 
+.app-title:not(.marquee) .app-title-track {
+	margin: 0 auto;
+}
+
+.app-title-copy {
+	display: block;
+	flex: none;
+	white-space: nowrap;
+}
+
 .app-title.marquee .app-title-track {
-	animation: app-title-marquee var(--app-marquee-duration) linear 300ms infinite;
+	animation: app-title-marquee var(--app-marquee-duration) linear 200ms infinite;
 	will-change: transform;
 }
 
