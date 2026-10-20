@@ -69,6 +69,7 @@ export interface InstalledApp {
     id: string;
     title: string;
     icon: string;
+    artwork: string;
     launchPointId: string;
     visible: boolean;
     lptype: string;
@@ -85,6 +86,9 @@ interface LaunchPoint {
     title?: string;
     icon?: string;
     largeIcon?: string;
+    bgImage?: string;
+    bgImages?: string[];
+    bgColor?: string;
     launchPointId?: string;
     hidden?: boolean;
     lptype?: string;
@@ -93,6 +97,7 @@ interface LaunchPoint {
 const HBCHANNEL_SERVICE = 'org.webosbrew.hbchannel.service';
 const SAFE_ICON_PATH = /^\/[A-Za-z0-9._\/+@-]+$/;
 const iconCache: Record<string, string> = {};
+const artworkCache: Record<string, string> = {};
 
 function shellQuote(value: string): string {
     return "'" + value.replace(/'/g, "'\\''") + "'";
@@ -115,6 +120,7 @@ function homebrewExec(
         return response.stdoutString || '';
     });
 }
+
 
 export function installedApps(): Promise<InstalledApp[]> {
     const command =
@@ -142,53 +148,88 @@ export function installedApps(): Promise<InstalledApp[]> {
                 app.id !== 'tld.my.minimalhome'
         );
 
-        const missing: { id: string; path: string }[] = [];
+        const missingIcons: { id: string; path: string }[] = [];
+        const missingArtwork: { id: string; path: string }[] = [];
 
         for (const app of points) {
-            const path = app.largeIcon || app.icon || '';
-            if (!path || !SAFE_ICON_PATH.test(path)) continue;
+            const iconPath = app.largeIcon || app.icon || '';
+            const artworkPath = app.bgImage || '';
 
-            if (!iconCache[app.id]) {
-                missing.push({ id: app.id, path });
+            if (
+                iconPath &&
+                SAFE_ICON_PATH.test(iconPath) &&
+                !iconCache[app.id]
+            ) {
+                missingIcons.push({ id: app.id, path: iconPath });
+            }
+
+            if (
+                artworkPath &&
+                SAFE_ICON_PATH.test(artworkPath) &&
+                !artworkCache[app.id]
+            ) {
+                missingArtwork.push({
+                    id: app.id,
+                    path: artworkPath
+                });
             }
         }
 
-        const loadIcons = (): Promise<void> => {
-            if (!missing.length) return Promise.resolve();
+        const loadImages = (
+            items: { id: string; path: string }[],
+            cache: Record<string, string>
+        ): Promise<void> => {
+            if (!items.length) return Promise.resolve();
 
-            const script = missing
+            const script = items
                 .map(
                     (item, index) =>
                         `printf '%d ' ${index}; base64 ${shellQuote(item.path)} 2>/dev/null | tr -d '\\n'; echo`
                 )
                 .join('; ');
 
-            return homebrewExec(script, 15000).then((output) => {
+            return homebrewExec(script, 30000).then((output) => {
                 for (const line of output.split('\n')) {
                     const match = /^(\d+) ([A-Za-z0-9+/=]+)$/.exec(line);
                     if (!match) continue;
 
-                    const item = missing[Number(match[1])];
+                    const item = items[Number(match[1])];
                     if (!item) continue;
 
-                    iconCache[item.id] =
-                        `data:image/png;base64,${match[2]}`;
+                    const extension =
+                        item.path.match(/\.([A-Za-z0-9]+)(?:[?#].*)?$/)?.[1]
+                            .toLowerCase() || 'png';
+
+                    const mime =
+                        extension === 'jpg' || extension === 'jpeg'
+                            ? 'image/jpeg'
+                            : extension === 'webp'
+                              ? 'image/webp'
+                              : extension === 'gif'
+                                ? 'image/gif'
+                                : 'image/png';
+
+                    cache[item.id] = `data:${mime};base64,${match[2]}`;
                 }
             });
         };
 
-        return loadIcons().then(() =>
-            points.map((app) => ({
-                id: app.id,
-                title: app.title || app.id,
-                icon: iconCache[app.id] || '',
-                launchPointId: app.launchPointId || '',
-                visible: app.hidden !== true,
-                lptype: app.lptype || 'default'
-            }))
-        );
+        return loadImages(missingIcons, iconCache)
+            .then(() => loadImages(missingArtwork, artworkCache))
+            .then(() =>
+                points.map((app) => ({
+                    id: app.id,
+                    title: app.title || app.id,
+                    icon: iconCache[app.id] || '',
+                    artwork: artworkCache[app.id] || '',
+                    launchPointId: app.launchPointId || '',
+                    visible: app.hidden !== true,
+                    lptype: app.lptype || 'default'
+                }))
+            );
     });
 }
+
 
 /** The server Jellyfin Native is signed in to (only the address - the helper never hands out its token). */
 export function jellyfinServerFromNative (): Promise<string> {
