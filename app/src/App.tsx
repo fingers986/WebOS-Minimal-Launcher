@@ -128,34 +128,8 @@ function YoutubeGlyph () {
 	);
 }
 
-function AppIcon ({app}: {app: AppDef & {artwork?: string}}) {
+function AppIcon ({app}: {app: AppDef}) {
     const [iconFailed, setIconFailed] = useState(false);
-    const [artworkFailed, setArtworkFailed] = useState(false);
-    const [artworkReady, setArtworkReady] = useState(false);
-
-    if (app.artwork && !artworkFailed) {
-        return (
-            <img
-                className="app-artwork"
-                src={app.artwork}
-                alt=""
-                decoding="async"
-                style={{opacity: artworkReady ? 1 : 0}}
-                onLoad={(e) => {
-                    const image = e.currentTarget;
-
-                    if (
-                        image.naturalWidth >= image.naturalHeight * 1.25
-                    ) {
-                        setArtworkReady(true);
-                    } else {
-                        setArtworkFailed(true);
-                    }
-                }}
-                onError={() => setArtworkFailed(true)}
-            />
-        );
-    }
 
     if (app.icon && !iconFailed) {
         return (
@@ -163,7 +137,6 @@ function AppIcon ({app}: {app: AppDef & {artwork?: string}}) {
                 className="app-icon"
                 src={app.icon}
                 alt=""
-                decoding="async"
                 onError={() => setIconFailed(true)}
             />
         );
@@ -238,23 +211,18 @@ function AppTitle ({title, active}: {title: string; active: boolean}) {
 }
 
 /** An app tile as shown: HDMI tiles carry the plugged-in device's name, the port as a second line, and dim when nothing is on. */
-type Tile = AppDef & {
-    sub?: string;
-    dim?: boolean;
-    artwork?: string;
-};
+type Tile = AppDef & {sub?: string; dim?: boolean};
 
 function buildTiles (ports: InputPort[] | null, installed: InstalledApp[] | null): Tile[] {
 	const visibleApps = installed?.filter((a) => a.visible && a.id) ?? [];
 	
 	const list: Tile[] = visibleApps
 	    .filter((a) => !a.id.startsWith('com.webos.app.hdmi'))
-		.map((a) => ({
-		    id: a.id,
-		    title: a.title || a.id,
-		    icon: a.icon || undefined,
-		    artwork: a.artwork || undefined,
-		}));
+	    .map((a) => ({
+	        id: a.id,
+	        title: a.title || a.id,
+	        icon: a.icon || undefined
+	    }));
 	
 	const seenIds = new Set(list.map((a) => a.id));
 
@@ -264,12 +232,11 @@ function buildTiles (ports: InputPort[] | null, installed: InstalledApp[] | null
         if (a.id.startsWith('com.webos.app.hdmi')) continue;
 
         seenIds.add(a.id);
-		extraApps.push({
-		    id: a.id,
-		    title: a.title || a.id,
-		    icon: a.icon || undefined,
-		    artwork: a.artwork || undefined,
-		});
+        extraApps.push({
+            id: a.id,
+            title: a.title || a.id,
+            icon: a.icon || undefined
+        });
     }
 
     const settingsIndex = list.findIndex((a) => a.id === 'com.palm.app.settings');
@@ -879,13 +846,10 @@ export default function App () {
 									onMouseLeave={() => setHoveredAppIndex(null)}
 									onClick={() => { setRow(1); setCol(i); activate(1, i); }}
 								>
-									<div className="app-visual">
-									    <AppIcon app={a}/>
-									</div>
-									
+									<AppIcon app={a} />
 									<AppTitle
-									    title={a.title}
-									    active={hoveredAppIndex === i}
+										title={a.title}
+										active={hoveredAppIndex === i}
 									/>
 									{a.sub ? <div className="app-sub">{a.sub}</div> : null}
 									<div className="ring" />
