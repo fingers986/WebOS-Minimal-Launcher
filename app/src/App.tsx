@@ -277,6 +277,7 @@ export default function App () {
 	const [appStart, setAppStart] = useState(0);
 	const [appScrollDirection, setAppScrollDirection] = useState<-1 | 0 | 1>(0);
 	const [hideAppHighlight, setHideAppHighlight] = useState(false);
+	const [hoveredAppIndex, setHoveredAppIndex] = useState<number | null>(null);
 	
 		useEffect(() => {
 			const updateAppHighlight = (e: PointerEvent) => {
