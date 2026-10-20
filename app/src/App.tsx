@@ -885,7 +885,7 @@ export default function App () {
 									
 									<AppTitle
 									    title={a.title}
-									    active={hoveredAppIndex === i}
+									    active={row === 1 && col === i && !hideAppHighlight}
 									/>
 									{a.sub ? <div className="app-sub">{a.sub}</div> : null}
 									<div className="ring" />
