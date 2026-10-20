@@ -132,6 +132,8 @@ h1 {
     position: relative;
     width: calc(100% + var(--pad));
     margin-left: calc(-1 * var(--pad));
+    height: 176px;
+    overflow: visible;
 }
 
 .approw-window {
