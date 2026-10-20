@@ -195,7 +195,7 @@ function AppTitle ({title, active}: {title: string; active: boolean}) {
 		<div
 			ref={boxRef}
 			className={'app-title' + (overflowing && active ? ' marquee' : '')}
-			style={{'--app-marquee-distance': `${distance}px`} as CSSProperties}
+			style={{'--app-marquee-distance': `${distance}px`, '--app-marquee-duration': `${distance / 60}s`} as CSSProperties}
 		>
 			<span ref={textRef} className="app-title-track">{title}</span>
 		</div>
